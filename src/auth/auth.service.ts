@@ -32,4 +32,18 @@ export class AuthService {
     const newUser = this.userRepository.create({email, password: hashedPassword});
     await this.userRepository.save(newUser);
   }
+
+  async validateUser(email: string, password: string) {
+    const user = await this.userRepository.findOne({where: {email}});
+    if (user) {
+      const [salt, hashedPassword] = user.password.split('.');
+
+      const controlHashedPassword = (await scrypt(password, salt, 32)) as Buffer;
+      if (hashedPassword === controlHashedPassword.toString('hex')) {
+        return user;
+      }
+    }
+    return null;
+  }
+
 }
