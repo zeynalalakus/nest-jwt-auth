@@ -5,12 +5,13 @@ import { Repository } from "typeorm";
 import { randomBytes, scrypt as _scrypt } from "crypto";
 import { CreateUserDto } from "./create-user.dto";
 import { promisify } from "util";
+import { JwtService } from "@nestjs/jwt";
 
 const scrypt = promisify(_scrypt);
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectRepository(User) private userRepository: Repository<User>) {
+  constructor(@InjectRepository(User) private userRepository: Repository<User>, private jwtService: JwtService) {
   }
 
 
@@ -46,4 +47,10 @@ export class AuthService {
     return null;
   }
 
+  login(user: User) {
+    const payload = {sub: user.id, email: user.email};
+    return {
+      access_token: this.jwtService.sign(payload)
+    }
+  }
 }
